@@ -6,11 +6,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.ResourceAccessException;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 @Component
@@ -46,12 +50,17 @@ public class PostDao {
             "    modification_user  = :modification_user " +
             "WHERE id = :id";
 
-    public void save(Post post) {
+    public Optional<Post> save(Post post) {
         try {
+            KeyHolder keyHolder = new GeneratedKeyHolder();
             template.update(insertQuery, postToParamSource(post));
             LOGGER.info("save: post from user {} saved", post.getUserId());
+
+            int id=(int) Objects.requireNonNull(keyHolder.getKeys().get("id"));
+            return this.getById(id);
         } catch (Exception e) {
             LOGGER.info("save: error {} saving post from user {}", e.getMessage(), post.getUserId());
+            throw new RepositoryException();
         }
     }
 

@@ -7,11 +7,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.ResourceAccessException;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 @Component
@@ -48,23 +51,29 @@ public class UserDao {
             "    modification_user  = :modification_user " +
             "WHERE id = :id";
 
-    public void save(User user) {
+    public Optional<User> save(User user) {
         try {
-            template.update(insertQuery, userToParamMap(user));
+            KeyHolder keyHolder = new GeneratedKeyHolder();
+            template.update(insertQuery, userToParamMap(user), keyHolder);
             LOGGER.info("save: user {} saved", user.getMail());
+
+            int id = (int) Objects.requireNonNull(keyHolder.getKeys().get("id"));
+            return this.getById(id);
         } catch (Exception e) {
             LOGGER.info("save: error {}, saving user {}", e.getMessage(), user.getMail());
             throw new RepositoryException();
         }
     }
 
-    public void update(User user) {
+    public User update(User user) {
         try {
             template.update(updateQuery, userToParamMap(user));
             LOGGER.info("update: user {} updated", user.getMail());
+            return user;
         } catch (Exception e) {
             LOGGER.info("update: error {}, updating user {}", e.getMessage(), user.getId());
         }
+        return user;
     }
 
     public List<User> get() {
