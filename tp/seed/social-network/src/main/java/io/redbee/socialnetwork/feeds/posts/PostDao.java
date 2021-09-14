@@ -1,5 +1,6 @@
 package io.redbee.socialnetwork.feeds.posts;
 
+import io.redbee.socialnetwork.feeds.posts.postsmappers.PostRequest;
 import io.redbee.socialnetwork.shared.exception.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,7 +54,7 @@ public class PostDao {
     public Optional<Post> save(Post post) {
         try {
             KeyHolder keyHolder = new GeneratedKeyHolder();
-            template.update(insertQuery, postToParamSource(post));
+            template.update(insertQuery, postToParamSource(post), keyHolder);
             LOGGER.info("save: post from user {} saved", post.getUserId());
 
             int id=(int) Objects.requireNonNull(keyHolder.getKeys().get("id"));
@@ -64,13 +65,15 @@ public class PostDao {
         }
     }
 
-    public void update(Post post) {
+    public Post update(Post post) {
         try {
             template.update(updateQuery, postToParamSource(post));
             LOGGER.info("update: post {} updated", post.getId());
+            return post;
         } catch (Exception e) {
             LOGGER.info("update: error {} updating post {}", e.getMessage(), post.getId());
         }
+        return post;
     }
 
     public List<Post> get() {

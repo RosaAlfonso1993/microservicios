@@ -4,6 +4,8 @@ package io.redbee.socialnetwork.users.userController;
 
 import io.redbee.socialnetwork.users.User;
 import io.redbee.socialnetwork.users.services.UserService;
+import io.redbee.socialnetwork.users.usersmappers.UserRequest;
+import io.redbee.socialnetwork.users.usersmappers.UserResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,28 +30,32 @@ public class UserController {
     }
 
     @GetMapping
-    public List<User> getAllUsers() {
+    @ResponseStatus(HttpStatus.OK)
+    public List<UserResponse> getAllUsers() {
         return userService.get();
     }
 
-
     @PostMapping
-    public ResponseEntity<User> postUser(@RequestBody User newUser) {
-        return new ResponseEntity<>(userService.save(newUser), HttpStatus.CREATED);
+    @ResponseStatus(HttpStatus.CREATED)
+    public UserResponse postUser(@RequestBody UserRequest newUser) {
+        return userService.save(newUser);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> getById(@PathVariable int id){
-        return new ResponseEntity<>(this.userService.getById(id).orElse(null), HttpStatus.OK);
+    @ResponseStatus(HttpStatus.OK)
+    public UserResponse getById(@PathVariable int id){
+        return this.userService.getById(id);
     }
 
-    @PutMapping("")
-    public void updateUser(@RequestBody User user){
-        this.userService.updateUser(user);
+    @PutMapping("{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public UserResponse updateUser(@PathVariable int id, @RequestBody UserRequest user){
+        return this.userService.updateUser(id,user);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteUser(@PathVariable int id){
-        this.userService.deleteUser(id);
+    @ResponseStatus(HttpStatus.OK)
+    public UserResponse deleteUser(@PathVariable int id){
+        return this.userService.deleteUser(id);
     }
 }
